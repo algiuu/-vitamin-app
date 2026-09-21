@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vitamin</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_notification">Notification</string>
+    <string name="nav_you">You</string>
+    <string name="logo_char">a</string>
+    <string name="logo_caption">0% penggunaan Ai</string>
+    <string name="home_title">ViTaMiN (Home)</string>
+    <string name="kalori">Kalori</string>
+    <string name="diagnose">Diagnose</string>
+    <string name="menstruasi">Menstruasi</string>
+    <string name="bmi">Body Mass Index (BMI)</string>
+    <string name="user_nickname">User123</string>
+    <string name="nickname_label">nickname</string>
+    <string name="history_label">History v</string>
+    <string name="new_history_label">NEW HISTORY v</string>
+    <string name="notify_label">Notify</string>
+    <string name="yes">YES</string>
+    <string name="no">NO</string>
+    <string name="new_badge">NEW</string>
+    <string name="settings_title">Setting</string>
+    <string name="settings_subtitle">Settings</string>
+    <string name="change_nickname">Ganti Nickname</string>
+    <string name="change_profile_pic">Ganti foto profil</string>
+    <string name="delete_account">Hapus Akun</string>
+    <string name="logout">Logout</string>
+    <string name="manual_label">Manual</string>
+    <string name="kamera_label">Kamera</string>
+</resources>

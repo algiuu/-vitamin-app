@@ -31,6 +31,12 @@ class MainActivity : AppCompatActivity() {
         fragmentContainer = findViewById(R.id.fragment_container)
         bottomNav = findViewById(R.id.main_bottom_navigation)
 
+        // Seed the default user if not exists to avoid empty database crashes
+        val dbHelper = VitaminDbHelper(this)
+        if (dbHelper.getUser(1) == null) {
+            dbHelper.registerUser("offline_user", "Pengguna VITaMIN", "1234")
+        }
+
         // Landing Screen Button
         findViewById<View>(R.id.bottom_home).setOnClickListener {
             enterApp()

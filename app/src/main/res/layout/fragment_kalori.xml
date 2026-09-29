@@ -12,12 +12,12 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="24dp"
+        android:padding="16dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:background="@color/white"
             android:contentDescription="@string/kalori"
             android:padding="8dp"
@@ -26,10 +26,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:text="@string/kalori"
+            android:layout_marginStart="16dp"
+            android:text="Pencatatan Kalori"
             android:textColor="@color/black"
-            android:textSize="28sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -40,72 +40,195 @@
         android:background="@color/black"
         app:layout_constraintTop_toBottomOf="@+id/detail_header" />
 
-    <TextView
-        android:id="@+id/kalori_subtitle"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:text="@string/kalori"
-        android:textAlignment="center"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@+id/line1" />
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/line1">
 
-    <View
-        android:id="@+id/line2"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/black"
-        app:layout_constraintTop_toBottomOf="@+id/kalori_subtitle" />
-
-    <!-- Toggle Buttons -->
-    <LinearLayout
-        android:id="@+id/toggle_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/line2">
-
-        <Button
-            android:id="@+id/btn_manual"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/text_gray"
-            android:text="@string/manual_label"
-            android:textAllCaps="false"
-            android:textColor="@color/black" />
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <Button
-            android:id="@+id/btn_kamera"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:backgroundTint="@color/text_gray"
-            android:text="@string/kamera_label"
-            android:textAllCaps="false"
-            android:textColor="@color/black" />
-    </LinearLayout>
+            <!-- Today's Summary -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardBackgroundColor="@color/accent_yellow"
+                app:cardElevation="2dp">
 
-    <!-- Camera Placeholder -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="150dp"
-        android:layout_height="200dp"
-        android:layout_marginTop="32dp"
-        app:cardBackgroundColor="@color/text_gray"
-        app:cardCornerRadius="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toggle_layout">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:contentDescription="Camera icon"
-            android:src="@android:drawable/ic_menu_camera" />
-    </androidx.cardview.widget.CardView>
+                    <TextView
+                        android:id="@+id/tv_total_calories_today"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total Kalori Hari Ini: 0 kcal"
+                        android:textColor="@color/black"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Mode Switcher -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp"
+                android:weightSum="2">
+
+                <Button
+                    android:id="@+id/btn_mode_manual"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Input Manual"
+                    android:layout_marginEnd="4dp"
+                    android:backgroundTint="@color/accent_pink"
+                    android:textColor="@color/white" />
+
+                <Button
+                    android:id="@+id/btn_mode_camera"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Cek via Kamera"
+                    android:layout_marginStart="4dp"
+                    android:backgroundTint="@color/logo_purple"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+
+            <!-- SECTION: Manual Input -->
+            <LinearLayout
+                android:id="@+id/layout_manual_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nama Makanan / Minuman:"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:layout_marginTop="20dp"/>
+
+                <EditText
+                    android:id="@+id/et_food_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@android:drawable/editbox_background"
+                    android:hint="Contoh: Nasi Goreng"
+                    android:inputType="text"
+                    android:padding="10dp"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Jumlah Kalori (kcal):"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:layout_marginTop="12dp"/>
+
+                <EditText
+                    android:id="@+id/et_calories_amount"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@android:drawable/editbox_background"
+                    android:hint="Contoh: 350"
+                    android:inputType="number"
+                    android:padding="10dp"
+                    android:textColor="@color/black" />
+
+                <Button
+                    android:id="@+id/btn_save_calorie"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="16dp"
+                    android:backgroundTint="@color/accent_pink"
+                    android:text="Simpan Log Kalori"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+
+            <!-- SECTION: Camera Input -->
+            <LinearLayout
+                android:id="@+id/layout_camera_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Deteksi Makanan Cerdas:"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:layout_marginTop="20dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Arahkan kamera ke makanan (contoh: nasgor atau gorengan)"
+                    android:textColor="@color/text_gray"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="8dp"/>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp"
+                    android:layout_marginBottom="16dp">
+
+                    <androidx.camera.view.PreviewView
+                        android:id="@+id/view_camera_preview"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                </androidx.cardview.widget.CardView>
+
+                <Button
+                    android:id="@+id/btn_capture_food"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:backgroundTint="@color/logo_purple"
+                    android:text="Ambil Foto dan Deteksi Makanan"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+
+            <!-- Logs List Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Daftar Log Kalori:"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- History List Container -->
+            <LinearLayout
+                android:id="@+id/ll_calories_history_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,13 +12,14 @@ class VitaminDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
 
     companion object {
         private const val DATABASE_NAME = "vitamin.db"
-        private const val DATABASE_VERSION = 2
+        private const val DATABASE_VERSION = 3
 
         // Tables
         private const val TABLE_USERS = "users"
         private const val TABLE_BIOMETRICS = "biometrics"
         private const val TABLE_CALORIES = "calories"
         private const val TABLE_MENSTRUAL = "menstrual"
+        private const val TABLE_NOTIFICATIONS = "notifications"
 
         // Common column
         private const val KEY_ID = "id"
@@ -49,6 +50,14 @@ class VitaminDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
         private const val KEY_MEN_DURATION = "duration"
         private const val KEY_MEN_CYCLE = "cycle_length"
         private const val KEY_MEN_NOTES = "notes"
+
+        // Notifications Columns
+        private const val KEY_NOTIF_USER_ID = "user_id"
+        private const val KEY_NOTIF_TITLE = "title"
+        private const val KEY_NOTIF_MESSAGE = "message"
+        private const val KEY_NOTIF_CATEGORY = "category"
+        private const val KEY_NOTIF_TARGET = "target_fragment"
+        private const val KEY_NOTIF_CREATED_AT = "created_at"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -83,16 +92,41 @@ class VitaminDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                 + "$KEY_MEN_CYCLE INTEGER,"
                 + "$KEY_MEN_NOTES TEXT)")
 
+        val createNotificationsTable = ("CREATE TABLE $TABLE_NOTIFICATIONS("
+                + "$KEY_ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "$KEY_NOTIF_USER_ID INTEGER,"
+                + "$KEY_NOTIF_TITLE TEXT,"
+                + "$KEY_NOTIF_MESSAGE TEXT,"
+                + "$KEY_NOTIF_CATEGORY TEXT,"
+                + "$KEY_NOTIF_TARGET TEXT,"
+                + "$KEY_NOTIF_CREATED_AT TEXT)")
+
         db.execSQL(createUsersTable)
         db.execSQL(createBiometricsTable)
         db.execSQL(createCaloriesTable)
         db.execSQL(createMenstrualTable)
+        db.execSQL(createNotificationsTable)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if (oldVersion < 2) {
             try {
                 db.execSQL("ALTER TABLE $TABLE_USERS ADD COLUMN $KEY_USER_GENDER TEXT DEFAULT 'Perempuan'")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        if (oldVersion < 3) {
+            try {
+                val createNotificationsTable = ("CREATE TABLE IF NOT EXISTS $TABLE_NOTIFICATIONS("
+                        + "$KEY_ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        + "$KEY_NOTIF_USER_ID INTEGER,"
+                        + "$KEY_NOTIF_TITLE TEXT,"
+                        + "$KEY_NOTIF_MESSAGE TEXT,"
+                        + "$KEY_NOTIF_CATEGORY TEXT,"
+                        + "$KEY_NOTIF_TARGET TEXT,"
+                        + "$KEY_NOTIF_CREATED_AT TEXT)")
+                db.execSQL(createNotificationsTable)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -176,6 +210,7 @@ class VitaminDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
         db.delete(TABLE_BIOMETRICS, "$KEY_BIO_USER_ID=?", arrayOf(userId.toString()))
         db.delete(TABLE_CALORIES, "$KEY_CAL_USER_ID=?", arrayOf(userId.toString()))
         db.delete(TABLE_MENSTRUAL, "$KEY_MEN_USER_ID=?", arrayOf(userId.toString()))
+        db.delete(TABLE_NOTIFICATIONS, "$KEY_NOTIF_USER_ID=?", arrayOf(userId.toString()))
         return db.delete(TABLE_USERS, "$KEY_ID=?", arrayOf(userId.toString()))
     }
 
@@ -291,6 +326,43 @@ class VitaminDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                 val cyc = cursor.getInt(cursor.getColumnIndexOrThrow(KEY_MEN_CYCLE))
                 val note = cursor.getString(cursor.getColumnIndexOrThrow(KEY_MEN_NOTES))
                 list.add(MenstrualRecord(id, userId, start, dur, cyc, note))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    // --- Notifications DAO Methods ---
+    fun insertNotification(userId: Int, title: String, message: String, category: String, targetFragment: String): Long {
+        val db = this.writableDatabase
+        val currentDate = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
+        val values = ContentValues().apply {
+            put(KEY_NOTIF_USER_ID, userId)
+            put(KEY_NOTIF_TITLE, title.trim())
+            put(KEY_NOTIF_MESSAGE, message.trim())
+            put(KEY_NOTIF_CATEGORY, category.trim())
+            put(KEY_NOTIF_TARGET, targetFragment.trim())
+            put(KEY_NOTIF_CREATED_AT, currentDate)
+        }
+        return db.insert(TABLE_NOTIFICATIONS, null, values)
+    }
+
+    fun getNotificationsForUser(userId: Int): List<NotificationItem> {
+        val list = mutableListOf<NotificationItem>()
+        val db = this.readableDatabase
+        val cursor = db.query(
+            TABLE_NOTIFICATIONS, null, "$KEY_NOTIF_USER_ID=?",
+            arrayOf(userId.toString()), null, null, "$KEY_ID DESC"
+        )
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(KEY_ID))
+                val title = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NOTIF_TITLE))
+                val msg = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NOTIF_MESSAGE))
+                val cat = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NOTIF_CATEGORY))
+                val target = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NOTIF_TARGET))
+                val date = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NOTIF_CREATED_AT))
+                list.add(NotificationItem(id, userId, title, msg, cat, target, date))
             } while (cursor.moveToNext())
         }
         cursor.close()

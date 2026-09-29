@@ -36,4 +36,20 @@ class SessionManager(context: Context) {
         if (!model.isNullOrEmpty()) return model
         return if (getProvider() == "OpenRouter") "google/gemini-2.5-flash" else "gemini-2.5-flash"
     }
+
+    fun saveNotificationEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("notification_enabled", enabled).apply()
+    }
+
+    fun isNotificationEnabled(): Boolean {
+        return prefs.getBoolean("notification_enabled", true)
+    }
+
+    fun saveCalorieTarget(target: Int) {
+        prefs.edit().putInt("calorie_target", target).apply()
+    }
+
+    fun getCalorieTarget(): Int {
+        return prefs.getInt("calorie_target", 2000)
+    }
 }

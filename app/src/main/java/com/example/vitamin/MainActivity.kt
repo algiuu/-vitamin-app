@@ -1,5 +1,6 @@
 package com.example.vitamin
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
@@ -54,15 +55,42 @@ class MainActivity : AppCompatActivity() {
             showFragment(selectedFragment)
             true
         }
+
+        // Check if launched from a Status Bar notification with a target
+        val target = intent?.getStringExtra("TARGET_FRAGMENT")
+        if (!target.isNullOrEmpty()) {
+            enterApp(target)
+        }
     }
 
-    private fun enterApp() {
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val target = intent.getStringExtra("TARGET_FRAGMENT")
+        if (!target.isNullOrEmpty()) {
+            enterApp(target)
+        }
+    }
+
+    private fun enterApp(target: String? = null) {
         landingContainer.visibility = View.GONE
         fragmentContainer.visibility = View.VISIBLE
         bottomNav.visibility = View.VISIBLE
-        
-        // Set default fragment to Home
-        bottomNav.selectedItemId = R.id.nav_home
+
+        when (target) {
+            "kalori" -> showFragment(KaloriFragment())
+            "diagnose" -> showFragment(DiagnoseFragment())
+            "menstruasi" -> showFragment(MenstruasiFragment())
+            "bmi" -> showFragment(BMIFragment())
+            "notification" -> {
+                bottomNav.selectedItemId = R.id.nav_notification
+                showFragment(NotificationFragment())
+            }
+            else -> {
+                bottomNav.selectedItemId = R.id.nav_home
+                showFragment(HomeFragment())
+            }
+        }
     }
 
     private fun showFragment(fragment: Fragment) {

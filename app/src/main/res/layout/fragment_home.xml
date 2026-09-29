@@ -22,14 +22,13 @@
             app:cardCornerRadius="8dp"
             app:cardElevation="0dp">
 
-            <TextView
+            <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="@string/logo_char"
-                android:textColor="@color/accent_pink"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:contentDescription="Logo Aplikasi"
+                android:scaleType="centerInside"
+                android:src="@mipmap/ic_launcher_foreground" />
+
         </androidx.cardview.widget.CardView>
 
         <TextView

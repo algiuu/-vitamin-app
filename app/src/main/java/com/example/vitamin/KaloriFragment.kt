@@ -2,9 +2,16 @@ package com.example.vitamin
 
 import android.Manifest
 import android.app.AlertDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
+import android.text.InputType
 import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +20,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +28,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -74,6 +83,10 @@ class KaloriFragment : Fragment() {
         val userId = sessionManager.getUserId()
 
         val tvTotalCaloriesToday = view.findViewById<TextView>(R.id.tv_total_calories_today)
+        val tvCaloriePercent = view.findViewById<TextView>(R.id.tv_calorie_percent)
+        val pbCalorieLimit = view.findViewById<ProgressBar>(R.id.pb_calorie_limit)
+        val btnEditTarget = view.findViewById<Button>(R.id.btn_edit_calorie_target)
+
         val etFoodName = view.findViewById<EditText>(R.id.et_food_name)
         val etCaloriesAmount = view.findViewById<EditText>(R.id.et_calories_amount)
         val btnSaveCalorie = view.findViewById<Button>(R.id.btn_save_calorie)
@@ -90,7 +103,12 @@ class KaloriFragment : Fragment() {
         fun loadLogsAndSummary() {
             val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             val dailyTotal = dbHelper.getDailyCalorieTotal(userId, currentDate)
-            tvTotalCaloriesToday.text = "Total Kalori Hari Ini: $dailyTotal kcal"
+            val targetCalorie = sessionManager.getCalorieTarget()
+
+            tvTotalCaloriesToday.text = "$dailyTotal / $targetCalorie kcal"
+            val percent = if (targetCalorie > 0) ((dailyTotal * 100) / targetCalorie).coerceAtMost(100) else 0
+            tvCaloriePercent.text = "Progres: $percent% dari limit harian ($targetCalorie kcal)"
+            pbCalorieLimit.progress = percent
 
             llCaloriesHistoryList.removeAllViews()
             val logs = dbHelper.getCalorieLogsForUser(userId)
@@ -119,6 +137,33 @@ class KaloriFragment : Fragment() {
                     }
                     llCaloriesHistoryList.addView(tvItem)
                 }
+            }
+        }
+
+        btnEditTarget?.setOnClickListener {
+            val currentTarget = sessionManager.getCalorieTarget()
+            val inputEt = EditText(requireContext()).apply {
+                hint = "Masukkan limit kalori (contoh: 2000)"
+                inputType = InputType.TYPE_CLASS_NUMBER
+                setText(currentTarget.toString())
+            }
+
+            AlertDialog.Builder(requireContext()).apply {
+                setTitle("Ubah Limit Kalori Harian")
+                setMessage("Atur batas maksimal asupan kalori harianmu (kcal):")
+                setView(inputEt)
+                setPositiveButton("Simpan") { _, _ ->
+                    val newTarget = inputEt.text.toString().toIntOrNull()
+                    if (newTarget != null && newTarget > 0) {
+                        sessionManager.saveCalorieTarget(newTarget)
+                        Toast.makeText(requireContext(), "Limit kalori diubah menjadi $newTarget kcal!", Toast.LENGTH_SHORT).show()
+                        loadLogsAndSummary()
+                    } else {
+                        Toast.makeText(requireContext(), "Nilai limit tidak valid", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                setNegativeButton("Batal", null)
+                show()
             }
         }
 
@@ -162,6 +207,7 @@ class KaloriFragment : Fragment() {
                         setPositiveButton("Simpan") { _, _ ->
                             dbHelper.insertCalorieLog(userId, foodName, calories)
                             Toast.makeText(requireContext(), "Log makanan berhasil disimpan!", Toast.LENGTH_SHORT).show()
+                            sendCalorieAddedNotification(foodName, calories)
                             loadLogsAndSummary()
                         }
                         setNegativeButton("Batal", null)
@@ -193,12 +239,79 @@ class KaloriFragment : Fragment() {
 
             dbHelper.insertCalorieLog(userId, foodName, calories)
             Toast.makeText(requireContext(), "Log kalori berhasil disimpan!", Toast.LENGTH_SHORT).show()
+            sendCalorieAddedNotification(foodName, calories)
 
             etFoodName.text.clear()
             etCaloriesAmount.text.clear()
 
             loadLogsAndSummary()
         }
+    }
+
+    private fun sendCalorieAddedNotification(foodName: String, calories: Int) {
+        val ctx = context ?: return
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val userId = sessionManager.getUserId()
+        val dailyTotal = dbHelper.getDailyCalorieTotal(userId, currentDate)
+        val targetCalorie = sessionManager.getCalorieTarget()
+
+        val notifTitle: String
+        val notifMessage: String
+
+        if (dailyTotal > targetCalorie) {
+            notifTitle = "Limit Kalori Terlampaui! 🚨"
+            notifMessage = "Perhatian! Asupan kalori hari ini ($dailyTotal kcal) telah melebihi limit harian ($targetCalorie kcal)."
+        } else if (dailyTotal == targetCalorie) {
+            notifTitle = "Target Kalori Harian Tercapai! 🎉"
+            notifMessage = "Selamat! Asupan kalori hari ini ($dailyTotal kcal) tepat mencapai limit harian ($targetCalorie kcal)."
+        } else if (dailyTotal >= (targetCalorie * 0.8)) {
+            notifTitle = "Hampir Capai Limit Kalori ⚠️"
+            notifMessage = "Asupan kalori hari ini ($dailyTotal / $targetCalorie kcal) sudah mencapai 80%+ dari limit harian."
+        } else {
+            notifTitle = "Log Kalori Ditambahkan 🥗"
+            notifMessage = "Berhasil mencatat $foodName ($calories kcal). Total: $dailyTotal / $targetCalorie kcal."
+        }
+
+        // Save notification record to SQLite database table for Notification Fragment history
+        dbHelper.insertNotification(userId, notifTitle, notifMessage, "Kalori", "kalori")
+
+        if (!sessionManager.isNotificationEnabled()) return
+
+        val channelId = "vitamin_health_channel"
+        val channelName = "Pengingat Kesehatan Vitamin"
+        val notificationManager =
+            ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
+                description = "Channel pengingat & rekomendasi kesehatan Vitamin"
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val intent = Intent(ctx, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("TARGET_FRAGMENT", "kalori")
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            ctx,
+            "kalori".hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(ctx, channelId)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(notifTitle)
+            .setContentText(notifMessage)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(notifMessage))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        val notifId = (System.currentTimeMillis() % 10000).toInt()
+        notificationManager.notify(notifId, builder.build())
     }
 
     private fun checkCameraPermission() {

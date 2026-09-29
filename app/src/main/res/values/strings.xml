@@ -28,4 +28,17 @@
     <string name="logout">Logout</string>
     <string name="manual_label">Manual</string>
     <string name="kamera_label">Kamera</string>
+    <string name="notification_settings_title">Pengaturan Notifikasi</string>
+    <string name="notification_settings_desc">Dapatkan pengingat harian &amp; saran kesehatan</string>
+    <string name="notification_disabled_desc">Notifikasi sedang dinonaktifkan</string>
+    <string name="notification_history_title">RIWAYAT NOTIFIKASI</string>
+    <string name="notification_history_badge">4 TERBARU</string>
+    <string name="notif_time_today">Hari ini</string>
+    <string name="notif_time_yesterday">Kemarin</string>
+    <string name="notif_time_2_days">2 hari lalu</string>
+    <string name="notif_time_3_days">3 hari lalu</string>
+    <string name="notif_kalori_desc">Target harian: Konsumsi 60g protein dan pertahankan asupan gizi seimbang.</string>
+    <string name="notif_diagnose_desc">Indikasi migrain ringan. Istirahat cukup dan konsultasikan dengan dokter jika berlanjut.</string>
+    <string name="notif_menstruasi_desc">Siklus diperkirakan sisa 3 hari. Minum air hangat secukupnya dan hindari stres.</string>
+    <string name="notif_bmi_desc">Indeks Massa Tubuh Anda berada di kategori Normal. Pertahankan pola hidup sehat!</string>
 </resources>

@@ -34,3 +34,13 @@ data class MenstrualRecord(
     val cycleLength: Int,
     val notes: String
 )
+
+data class NotificationItem(
+    val id: Int = 0,
+    val userId: Int,
+    val title: String,
+    val message: String,
+    val category: String,
+    val targetFragment: String,
+    val createdAt: String
+)
